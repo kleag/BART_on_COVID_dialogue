@@ -1,3 +1,33 @@
+#!/bin/bash
+
+#SBATCH --job-name=BART_on_COVID_dialogue
+#SBATCH --mail-type=start,end,fail
+#SBATCH --mail-user=gael.de-chalendar@cea.fr
+
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=10
+
+# #SBATCH --partition=amd
+# #SBATCH --partition=classicgpu
+# #SBATCH --partition=gpu40g
+# #SBATCH --partition=gpup100
+# #SBATCH --partition=gpuv100
+#SBATCH --partition=lasti
+# #SBATCH --partition=gpu-test
+
+#SBATCH --gres=gpu:6
+
+#SBATCH --time=1-00:00:00
+####SBATCH --time=0-00:30:00
+
+#SBATCH --mem=50G
+
+echo "Begin on machine: `hostname`"
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
 TOTAL_NUM_UPDATES=10000
 WARMUP_UPDATES=500      
 LR=3e-05
@@ -5,7 +35,10 @@ MAX_TOKENS=1024
 UPDATE_FREQ=1
 BART_PATH=bart.large/model.pt
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 fairseq-train preprocess_data/patient2doctor-bin \
+fairseq-train preprocess_data/patient2doctor-bin \
+    --max-update 10000 \
+    --max-epoch 100 \
+    --patience 10 \
     --restore-file $BART_PATH \
     --max-tokens $MAX_TOKENS \
     --task translation \
